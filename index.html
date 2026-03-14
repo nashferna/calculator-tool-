@@ -2,687 +2,758 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SDR Metrics — GlobalTask</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>El Tren de Joan 🚂</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #0c0c0f;
-    --surface: #141418;
-    --surface2: #1c1c22;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.13);
-    --text: #f0efe8;
-    --muted: #7a7a85;
-    --accent: #c8f064;
-    --accent2: #6477f0;
-    --danger: #f06464;
-    --warn: #f0b864;
-    --mono: 'DM Mono', monospace;
-    --serif: 'Instrument Serif', serif;
-    --sans: 'DM Sans', sans-serif;
-  }
+:root {
+  --sky: #87CEEB;
+  --sky2: #b8e4f7;
+  --ground: #5a9e3a;
+  --ground2: #4a8a2a;
+  --track: #8B6914;
+  --train-body: #1a5fbe;
+  --train-dark: #0d3d8a;
+  --train-window: #a8d8ff;
+  --train-roof: #0d3d8a;
+  --station-bg: #fff9e6;
+  --yellow: #FFD700;
+  --red: #e63946;
+  --white: #ffffff;
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-weight: 300;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
+  touch-action: manipulation;
+}
 
-  /* Grid background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 48px 48px;
-    pointer-events: none;
-    z-index: 0;
-  }
+/* SKY */
+#sky {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #5ab4e8 0%, #87CEEB 50%, #b8e4f7 100%);
+  z-index: 0;
+}
 
-  .wrap {
-    position: relative;
-    z-index: 1;
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 48px 24px 80px;
-  }
+/* SUN */
+#sun {
+  position: fixed;
+  top: 30px; right: 60px;
+  width: 70px; height: 70px;
+  background: radial-gradient(circle, #ffe566 60%, #ffcf00 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 40px 10px rgba(255,220,0,0.45);
+  z-index: 1;
+  animation: sunPulse 3s ease-in-out infinite;
+}
+@keyframes sunPulse { 0%,100%{box-shadow:0 0 40px 10px rgba(255,220,0,.45)} 50%{box-shadow:0 0 60px 20px rgba(255,220,0,.6)} }
 
-  /* Header */
-  .header {
-    margin-bottom: 56px;
-    animation: fadeUp .6s ease both;
-  }
+/* CLOUDS */
+.cloud {
+  position: fixed;
+  z-index: 2;
+  background: white;
+  border-radius: 50px;
+  opacity: .9;
+}
+.cloud::before, .cloud::after {
+  content: '';
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+}
+#c1 { width:100px;height:40px;top:60px;left:-120px; animation: movCloud 18s linear infinite; }
+#c1::before { width:50px;height:50px;top:-25px;left:15px; }
+#c1::after  { width:35px;height:35px;top:-18px;left:48px; }
+#c2 { width:70px;height:28px;top:100px;left:-90px; animation: movCloud 24s 6s linear infinite; }
+#c2::before { width:36px;height:36px;top:-18px;left:10px; }
+#c2::after  { width:25px;height:25px;top:-12px;left:35px; }
+#c3 { width:90px;height:34px;top:40px;left:-110px; animation: movCloud 20s 12s linear infinite; }
+#c3::before { width:44px;height:44px;top:-22px;left:12px; }
+#c3::after  { width:30px;height:30px;top:-15px;left:44px; }
+@keyframes movCloud { from{left:-150px} to{left:110vw} }
 
-  .tag {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--accent);
-    border: 1px solid rgba(200,240,100,0.25);
-    padding: 4px 12px;
-    border-radius: 100px;
-    margin-bottom: 20px;
-    letter-spacing: .06em;
-  }
+/* MOUNTAINS */
+#mountains {
+  position: fixed;
+  bottom: 160px;
+  width: 100%;
+  z-index: 3;
+}
+#mountains svg { width:100%; height:140px; display:block; }
 
-  h1 {
-    font-family: var(--serif);
-    font-size: clamp(36px, 6vw, 58px);
-    font-weight: 400;
-    line-height: 1.1;
-    margin-bottom: 12px;
-    letter-spacing: -.02em;
-  }
+/* GROUND STRIP */
+#ground {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 165px;
+  background: var(--ground);
+  z-index: 4;
+  border-top: 6px solid var(--ground2);
+}
 
-  h1 em {
-    font-style: italic;
-    color: var(--accent);
-  }
+/* FLOWERS */
+.flower {
+  position: absolute;
+  bottom: 120px;
+  font-size: 22px;
+  animation: flowerBob 2s ease-in-out infinite;
+}
+@keyframes flowerBob { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
 
-  .subtitle {
-    font-size: 15px;
-    color: var(--muted);
-    line-height: 1.6;
-    max-width: 520px;
-  }
+/* TRACK */
+#track {
+  position: fixed;
+  bottom: 100px;
+  width: 100%;
+  height: 28px;
+  z-index: 5;
+}
+.rail {
+  position: absolute;
+  width: 100%;
+  height: 7px;
+  background: #666;
+  border-radius: 4px;
+}
+.rail.top { top: 0; }
+.rail.bot { bottom: 0; }
+.sleeper {
+  position: absolute;
+  width: 18px;
+  height: 28px;
+  background: #8B6914;
+  border-radius: 3px;
+  top: 0;
+}
 
-  /* Tabs */
-  .tabs {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 32px;
-    flex-wrap: wrap;
-    animation: fadeUp .6s .1s ease both;
-  }
+/* STATION */
+#station {
+  position: fixed;
+  z-index: 6;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity .4s;
+}
+.station-sign {
+  background: var(--train-body);
+  color: white;
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(14px,3vw,22px);
+  padding: 6px 20px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  white-space: nowrap;
+}
+.station-building {
+  width: 120px;
+  height: 70px;
+  background: #fff9e6;
+  border: 3px solid #ddd;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.station-roof {
+  position: absolute;
+  top: -22px; left: -8px;
+  width: 136px; height: 28px;
+  background: var(--red);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
+.station-window {
+  width: 28px; height: 28px;
+  background: #a8d8ff;
+  border: 2px solid #888;
+  border-radius: 4px;
+  margin: 0 5px;
+}
+.station-door {
+  width: 22px; height: 38px;
+  background: #8B6914;
+  border: 2px solid #666;
+  border-radius: 4px 4px 0 0;
+  position: absolute;
+  bottom: 0;
+}
+.station-platform {
+  width: 160px; height: 14px;
+  background: #ccc;
+  border-radius: 4px;
+}
 
-  .tab {
-    padding: 8px 18px;
-    border-radius: 100px;
-    border: 1px solid var(--border2);
-    font-size: 13px;
-    cursor: pointer;
-    background: transparent;
-    color: var(--muted);
-    font-family: var(--sans);
-    transition: all .2s;
-    white-space: nowrap;
-  }
+/* TRAIN */
+#train {
+  position: fixed;
+  bottom: 122px;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  transition: left 1.8s cubic-bezier(.4,0,.2,1);
+}
 
-  .tab:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
-  .tab.active { background: var(--accent); color: #0c0c0f; border-color: var(--accent); font-weight: 500; }
+/* LOCOMOTIVE */
+.loco {
+  position: relative;
+  width: 110px;
+  height: 72px;
+}
+.loco-body {
+  position: absolute;
+  bottom: 0;
+  width: 110px; height: 56px;
+  background: var(--train-body);
+  border-radius: 10px 18px 6px 6px;
+  border: 3px solid var(--train-dark);
+}
+.loco-front {
+  position: absolute;
+  right: -14px; bottom: 6px;
+  width: 18px; height: 42px;
+  background: var(--train-body);
+  border-radius: 0 10px 10px 0;
+  border: 3px solid var(--train-dark);
+  border-left: none;
+}
+.loco-roof {
+  position: absolute;
+  top: 0; left: 8px;
+  width: 78px; height: 22px;
+  background: var(--train-roof);
+  border-radius: 8px 14px 4px 4px;
+  border: 3px solid var(--train-dark);
+}
+.loco-window {
+  position: absolute;
+  top: 6px; right: 22px;
+  width: 30px; height: 26px;
+  background: var(--train-window);
+  border-radius: 6px;
+  border: 3px solid var(--train-dark);
+}
+.loco-stripe {
+  position: absolute;
+  bottom: 12px; left: 0;
+  width: 100%; height: 10px;
+  background: var(--yellow);
+  border-radius: 0;
+}
+.chimney {
+  position: absolute;
+  top: -14px; left: 20px;
+  width: 16px; height: 18px;
+  background: var(--train-dark);
+  border-radius: 4px 4px 0 0;
+}
+.loco-light {
+  position: absolute;
+  right: -6px; bottom: 18px;
+  width: 12px; height: 12px;
+  background: var(--yellow);
+  border-radius: 50%;
+  border: 2px solid var(--train-dark);
+  box-shadow: 0 0 8px 4px rgba(255,220,0,.5);
+}
+.wheel {
+  position: absolute;
+  bottom: -10px;
+  width: 24px; height: 24px;
+  background: #333;
+  border-radius: 50%;
+  border: 3px solid #666;
+  animation: spin 0.4s linear infinite paused;
+}
+.wheel::after {
+  content:'';
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:8px;height:8px;
+  background:#aaa;
+  border-radius:50%;
+}
+.w1 { left: 8px; }
+.w2 { left: 38px; }
+.w3 { left: 68px; }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
-  /* Panel */
-  .panel { display: none; animation: fadeUp .35s ease both; }
-  .panel.active { display: block; }
+/* WAGON */
+.wagon {
+  position: relative;
+  width: 86px;
+  height: 58px;
+}
+.wagon-body {
+  position: absolute;
+  bottom: 0;
+  width: 86px; height: 48px;
+  background: var(--train-body);
+  border-radius: 6px;
+  border: 3px solid var(--train-dark);
+}
+.wagon-window {
+  position: absolute;
+  top: 6px;
+  width: 22px; height: 20px;
+  background: var(--train-window);
+  border-radius: 4px;
+  border: 2px solid var(--train-dark);
+}
+.ww1 { left: 10px; }
+.ww2 { left: 40px; }
+.wagon-stripe {
+  position: absolute;
+  bottom: 10px; left: 0;
+  width: 100%; height: 8px;
+  background: var(--yellow);
+}
+.wagon-roof {
+  position: absolute;
+  top: 0; left: 4px;
+  width: 78px; height: 14px;
+  background: var(--train-roof);
+  border-radius: 6px 6px 2px 2px;
+  border: 2px solid var(--train-dark);
+}
+.ww { position: absolute; bottom: -10px; }
+.ww.wl { left: 8px; }
+.ww.wr { left: 50px; }
 
-  /* Cards */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px;
-    margin-bottom: 16px;
-  }
+/* SMOKE */
+.smoke {
+  position: fixed;
+  border-radius: 50%;
+  background: rgba(255,255,255,.85);
+  z-index: 9;
+  pointer-events: none;
+  animation: floatSmoke 2s ease-out forwards;
+}
+@keyframes floatSmoke {
+  0%   { opacity:.8; transform: scale(.5) translate(0,0); }
+  100% { opacity:0;  transform: scale(2.5) translate(-20px,-60px); }
+}
 
-  .card-title {
-    font-family: var(--serif);
-    font-size: 22px;
-    font-weight: 400;
-    margin-bottom: 6px;
-    letter-spacing: -.01em;
-  }
+/* UI OVERLAY */
+#ui {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  padding: 16px 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
 
-  .card-desc {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.65;
-    margin-bottom: 24px;
-  }
+#title-box {
+  background: rgba(255,255,255,.92);
+  border-radius: 20px;
+  padding: 10px 28px;
+  border: 4px solid var(--train-body);
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  text-align: center;
+}
+#title-box h1 {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(22px,5vw,38px);
+  color: var(--train-body);
+  line-height: 1.1;
+}
+#title-box p {
+  font-size: clamp(13px,2.5vw,17px);
+  color: #555;
+  font-weight: 700;
+}
 
-  /* Formula */
-  .formula {
-    background: var(--bg);
-    border: 1px solid var(--border2);
-    border-radius: 10px;
-    padding: 14px 18px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--accent);
-    margin-bottom: 24px;
-    letter-spacing: .02em;
-  }
+/* STATION POPUP */
+#popup {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(.7);
+  z-index: 30;
+  background: white;
+  border-radius: 24px;
+  padding: 28px 36px;
+  text-align: center;
+  border: 5px solid var(--train-body);
+  box-shadow: 0 8px 40px rgba(0,0,0,.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: all .35s cubic-bezier(.34,1.56,.64,1);
+  max-width: 90vw;
+}
+#popup.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: all;
+}
+#popup-emoji { font-size: 56px; margin-bottom: 8px; }
+#popup-station { font-family: 'Fredoka One', cursive; font-size: clamp(22px,5vw,34px); color: var(--train-body); margin-bottom: 6px; }
+#popup-fact { font-size: clamp(13px,2.5vw,16px); color: #555; font-weight: 700; margin-bottom: 20px; max-width: 300px; margin-left: auto; margin-right: auto; }
+#popup-btn {
+  background: var(--train-body);
+  color: white;
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(18px,4vw,26px);
+  border: none;
+  border-radius: 50px;
+  padding: 12px 40px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  transition: transform .15s, box-shadow .15s;
+  pointer-events: all;
+}
+#popup-btn:active { transform: scale(.96); box-shadow: 0 2px 6px rgba(0,0,0,.2); }
 
-  /* Inputs */
-  .input-group {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--border);
-  }
+/* PROGRESS DOTS */
+#dots {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.4);
+  border: 2px solid rgba(255,255,255,.6);
+  transition: all .3s;
+}
+.dot.done { background: var(--train-body); border-color: white; transform: scale(1.2); }
+.dot.current { background: var(--yellow); border-color: white; transform: scale(1.3); }
 
-  .input-group:last-of-type { border-bottom: none; }
+/* CONFETTI */
+.confetti-piece {
+  position: fixed;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  z-index: 50;
+  pointer-events: none;
+  animation: confettiFall 3s ease-in forwards;
+}
+@keyframes confettiFall {
+  0%   { opacity:1; transform: translateY(-20px) rotate(0deg); }
+  100% { opacity:0; transform: translateY(100vh) rotate(720deg); }
+}
 
-  .input-label {
-    font-size: 13px;
-    color: var(--muted);
-  }
+/* FINAL SCREEN */
+#final {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(26,95,190,.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .6s;
+  text-align: center;
+  padding: 24px;
+}
+#final.show { opacity:1; pointer-events:all; }
+#final h2 { font-family:'Fredoka One',cursive; font-size:clamp(32px,7vw,60px); color:white; line-height:1.1; margin-bottom:12px; }
+#final p { font-size:clamp(16px,3vw,22px); color:rgba(255,255,255,.9); font-weight:700; margin-bottom:28px; }
+#restart-btn {
+  background: var(--yellow);
+  color: var(--train-dark);
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(18px,4vw,28px);
+  border: none;
+  border-radius: 50px;
+  padding: 14px 48px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,.3);
+}
 
-  .calc-input {
-    width: 100px;
-    padding: 8px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--border2);
-    background: var(--surface2);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 15px;
-    font-weight: 500;
-    text-align: center;
-    outline: none;
-    transition: border-color .2s;
-  }
-
-  .calc-input:focus { border-color: var(--accent); }
-
-  /* Result */
-  .result {
-    margin-top: 24px;
-    border-radius: 12px;
-    padding: 20px 24px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    transition: background .3s;
-  }
-
-  .result-num {
-    font-family: var(--mono);
-    font-size: 36px;
-    font-weight: 500;
-    line-height: 1;
-    white-space: nowrap;
-  }
-
-  .result-label {
-    font-size: 13px;
-    line-height: 1.5;
-  }
-
-  .result-sub {
-    font-size: 11px;
-    margin-top: 4px;
-    opacity: .7;
-  }
-
-  .result.good { background: rgba(200,240,100,0.08); border: 1px solid rgba(200,240,100,0.2); }
-  .result.good .result-num { color: var(--accent); }
-  .result.warn { background: rgba(240,184,100,0.08); border: 1px solid rgba(240,184,100,0.2); }
-  .result.warn .result-num { color: var(--warn); }
-  .result.bad { background: rgba(240,100,100,0.08); border: 1px solid rgba(240,100,100,0.2); }
-  .result.bad .result-num { color: var(--danger); }
-  .result.info { background: rgba(100,119,240,0.08); border: 1px solid rgba(100,119,240,0.2); }
-  .result.info .result-num { color: var(--accent2); }
-
-  /* Bench pill */
-  .bench {
-    display: inline-block;
-    font-size: 11px;
-    font-family: var(--mono);
-    padding: 3px 10px;
-    border-radius: 100px;
-    margin-top: 8px;
-  }
-
-  .bench.good { background: rgba(200,240,100,0.15); color: var(--accent); }
-  .bench.warn { background: rgba(240,184,100,0.15); color: var(--warn); }
-  .bench.bad { background: rgba(240,100,100,0.15); color: var(--danger); }
-
-  /* Segments */
-  .seg-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 10px;
-    margin-top: 16px;
-  }
-
-  .seg-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-  }
-
-  .seg-title { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
-  .seg-val { font-size: 22px; font-weight: 500; font-family: var(--mono); color: var(--accent); }
-  .seg-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-  /* Pipeline grid */
-  .pip-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-    margin-top: 20px;
-  }
-
-  .pip-card {
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-    border: 1px solid var(--border);
-  }
-
-  .pip-num { font-family: var(--mono); font-size: 24px; font-weight: 500; }
-  .pip-label { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
-
-  /* Timeline */
-  .timeline {
-    position: relative;
-    margin: 20px 0 8px;
-    padding-top: 10px;
-  }
-
-  .tl-track {
-    position: absolute;
-    top: 19px;
-    left: 10px;
-    right: 10px;
-    height: 1px;
-    background: var(--border2);
-  }
-
-  .tl-fill {
-    height: 100%;
-    background: var(--accent);
-    transition: width .4s;
-  }
-
-  .tl-nodes {
-    display: flex;
-    justify-content: space-between;
-    position: relative;
-  }
-
-  .tl-node {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-  }
-
-  .tl-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--accent);
-    border: 2px solid var(--bg);
-    z-index: 1;
-  }
-
-  .tl-day { font-family: var(--mono); font-size: 11px; color: var(--accent); }
-  .tl-lbl { font-size: 10px; color: var(--muted); text-align: center; max-width: 64px; line-height: 1.3; }
-
-  /* Tip */
-  .tip {
-    background: rgba(200,240,100,0.05);
-    border: 1px solid rgba(200,240,100,0.12);
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-size: 12px;
-    color: rgba(200,240,100,0.7);
-    line-height: 1.6;
-    margin-top: 16px;
-  }
-
-  /* Section label */
-  .section-lbl {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    margin: 20px 0 10px;
-  }
-
-  /* Narrative */
-  .narrative {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.6;
-    margin-top: 12px;
-  }
-
-  /* Animations */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Footer */
-  .footer {
-    margin-top: 64px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-    font-size: 12px;
-    color: var(--muted);
-    font-family: var(--mono);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: gap;
-    gap: 8px;
-  }
-
-  @media (max-width: 600px) {
-    .pip-grid { grid-template-columns: 1fr; }
-    .input-group { flex-direction: column; align-items: flex-start; gap: 8px; }
-    .calc-input { width: 100%; }
-  }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="header">
-    <div class="tag">SDR Metrics · GlobalTask</div>
-    <h1>Pipeline <em>inteligente</em>,<br>no actividad</h1>
-    <p class="subtitle">Calculá tus métricas reales de SDR: ACV, Opportunity Acceptance y Velocity. El modelo que el board quiere ver.</p>
-  </div>
+<div id="sky"></div>
+<div id="sun"></div>
+<div class="cloud" id="c1"></div>
+<div class="cloud" id="c2"></div>
+<div class="cloud" id="c3"></div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="showTab('acv')">ACV</button>
-    <button class="tab" onclick="showTab('acceptance')">Opportunity Acceptance</button>
-    <button class="tab" onclick="showTab('velocity')">Velocity</button>
-    <button class="tab" onclick="showTab('pipeline')">Pipeline total</button>
-  </div>
-
-  <!-- ACV -->
-  <div class="panel active" id="tab-acv">
-    <div class="card">
-      <div class="card-title">Annual Contract Value</div>
-      <div class="card-desc">El valor anual de un contrato. Si alguien paga $2.500/mes, su ACV es $30.000. Es la métrica que transforma reuniones en revenue para el board.</div>
-      <div class="formula">ACV = precio mensual × 12 &nbsp;|&nbsp; TCV = precio mensual × meses</div>
-      <div class="input-group">
-        <span class="input-label">Precio mensual del deal (USD)</span>
-        <input class="calc-input" id="acv-m" type="number" value="2500" oninput="calcACV()">
-      </div>
-      <div class="input-group">
-        <span class="input-label">Duración del contrato (meses)</span>
-        <input class="calc-input" id="acv-mo" type="number" value="12" oninput="calcACV()">
-      </div>
-      <div class="result good" id="acv-result">
-        <div class="result-num" id="acv-num">$30.000</div>
-        <div class="result-label">
-          ACV de este deal
-          <div class="result-sub" id="acv-tcv">TCV total: $30.000</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">ACV por industria — GlobalTask</div>
-      <div class="card-desc">Cuánto vale en promedio cada tipo de cuenta. Usalo para priorizar dónde invertís tu tiempo esta semana.</div>
-      <div class="seg-grid">
-        <div class="seg-card"><div class="seg-title">Fintech / FSI</div><div class="seg-val">$48K</div><div class="seg-note">ACV promedio</div></div>
-        <div class="seg-card"><div class="seg-title">SaaS B2B</div><div class="seg-val">$28K</div><div class="seg-note">ACV promedio</div></div>
-        <div class="seg-card"><div class="seg-title">Retail / eComm</div><div class="seg-val">$18K</div><div class="seg-note">ACV promedio</div></div>
-        <div class="seg-card"><div class="seg-title">Enterprise</div><div class="seg-val">$90K+</div><div class="seg-note">ACV promedio</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ACCEPTANCE -->
-  <div class="panel" id="tab-acceptance">
-    <div class="card">
-      <div class="card-title">Opportunity Acceptance Rate</div>
-      <div class="card-desc">De las reuniones que agendás, qué porcentaje el AE acepta como oportunidad real. Una reunión sin pain real no cuenta. Este número muestra la calidad de tu trabajo, no el volumen.</div>
-      <div class="formula">Acceptance = oportunidades aceptadas ÷ reuniones agendadas × 100</div>
-      <div class="input-group">
-        <span class="input-label">Reuniones agendadas este mes</span>
-        <input class="calc-input" id="acc-m" type="number" value="10" oninput="calcAcc()">
-      </div>
-      <div class="input-group">
-        <span class="input-label">Oportunidades aceptadas por el AE</span>
-        <input class="calc-input" id="acc-a" type="number" value="6" oninput="calcAcc()">
-      </div>
-      <div class="result" id="acc-result">
-        <div class="result-num" id="acc-num">60%</div>
-        <div class="result-label">
-          <span id="acc-label">Buen nivel de calificación</span>
-          <div><span class="bench good" id="acc-bench">benchmark: 50–65%</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Qué significa cada rango</div>
-      <div class="seg-grid">
-        <div class="seg-card" style="border-color: rgba(200,240,100,0.2)">
-          <div class="seg-title" style="color: var(--accent)">+60%</div>
-          <div class="seg-val" style="font-size:15px;color:var(--text);font-family:var(--sans)">Calificación sólida</div>
-          <div class="seg-note">Las reuniones que agendás tienen pain real y budget</div>
-        </div>
-        <div class="seg-card" style="border-color: rgba(240,184,100,0.2)">
-          <div class="seg-title" style="color: var(--warn)">30–60%</div>
-          <div class="seg-val" style="font-size:15px;color:var(--text);font-family:var(--sans)">Inconsistente</div>
-          <div class="seg-note">Calificás bien a veces — revisar preguntas antes de agendar</div>
-        </div>
-        <div class="seg-card" style="border-color: rgba(240,100,100,0.2)">
-          <div class="seg-title" style="color: var(--danger)">−30%</div>
-          <div class="seg-val" style="font-size:15px;color:var(--text);font-family:var(--sans)">Problema de targeting</div>
-          <div class="seg-note">Estás llegando a las cuentas o cargos equivocados</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- VELOCITY -->
-  <div class="panel" id="tab-velocity">
-    <div class="card">
-      <div class="card-title">Pipeline Velocity</div>
-      <div class="card-desc">Días desde el primer contacto hasta que el AE acepta la oportunidad. Menos días = más ciclos por trimestre. Las señales de compra comprimen este número drásticamente.</div>
-      <div class="formula">Velocity = fecha oportunidad aceptada − fecha primer contacto</div>
-      <div class="input-group">
-        <span class="input-label">Primer contacto (día del mes)</span>
-        <input class="calc-input" id="vel-s" type="number" value="1" min="1" max="30" oninput="calcVel()">
-      </div>
-      <div class="input-group">
-        <span class="input-label">Oportunidad aceptada (día del mes)</span>
-        <input class="calc-input" id="vel-e" type="number" value="9" min="1" max="30" oninput="calcVel()">
-      </div>
-
-      <div class="timeline">
-        <div class="tl-track"><div class="tl-fill" id="tl-fill" style="width:100%"></div></div>
-        <div class="tl-nodes" id="tl-nodes"></div>
-      </div>
-
-      <div class="result good" id="vel-result">
-        <div class="result-num" id="vel-num">8 días</div>
-        <div class="result-label">
-          <span id="vel-label">Velocity excelente</span>
-          <div class="result-sub">Benchmark B2B SaaS LATAM: 15–30 días</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Por qué importa comprimirla</div>
-      <div class="seg-grid">
-        <div class="seg-card">
-          <div class="seg-title">Velocity 30 días</div>
-          <div class="seg-val">3–4</div>
-          <div class="seg-note">ciclos posibles por trimestre</div>
-        </div>
-        <div class="seg-card">
-          <div class="seg-title">Velocity 10 días</div>
-          <div class="seg-val">9</div>
-          <div class="seg-note">ciclos posibles por trimestre</div>
-        </div>
-        <div class="seg-card">
-          <div class="seg-title">Diferencia</div>
-          <div class="seg-val" style="color:var(--accent)">2–3×</div>
-          <div class="seg-note">más pipeline, mismo esfuerzo</div>
-        </div>
-      </div>
-      <div class="tip">Las señales de compra (fondeo, hiring, nuevo producto) comprimen la velocity porque la cuenta ya está en modo compra activo. No necesitás educarla.</div>
-    </div>
-  </div>
-
-  <!-- PIPELINE TOTAL -->
-  <div class="panel" id="tab-pipeline">
-    <div class="card">
-      <div class="card-title">Pipeline generado este mes</div>
-      <div class="card-desc">La fórmula que combina las tres métricas. Es lo que presentás al board en lugar de "agendé X reuniones".</div>
-      <div class="formula">Pipeline = reuniones × acceptance% × ACV &nbsp;÷&nbsp; velocity</div>
-
-      <div class="input-group">
-        <span class="input-label">Reuniones agendadas</span>
-        <input class="calc-input" id="pip-m" type="number" value="12" oninput="calcPip()">
-      </div>
-      <div class="input-group">
-        <span class="input-label">Opportunity acceptance (%)</span>
-        <input class="calc-input" id="pip-a" type="number" value="60" oninput="calcPip()">
-      </div>
-      <div class="input-group">
-        <span class="input-label">ACV promedio (USD)</span>
-        <input class="calc-input" id="pip-acv" type="number" value="30000" oninput="calcPip()">
-      </div>
-      <div class="input-group">
-        <span class="input-label">Velocity promedio (días)</span>
-        <input class="calc-input" id="pip-v" type="number" value="15" oninput="calcPip()">
-      </div>
-
-      <div class="pip-grid">
-        <div class="pip-card" style="background:var(--surface2);border-color:var(--border)">
-          <div class="pip-num" id="pip-opps" style="color:var(--text)">7</div>
-          <div class="pip-label">Oportunidades aceptadas</div>
-        </div>
-        <div class="pip-card" style="background:rgba(200,240,100,0.06);border-color:rgba(200,240,100,0.2)">
-          <div class="pip-num" id="pip-total" style="color:var(--accent)">$216.000</div>
-          <div class="pip-label">Pipeline generado</div>
-        </div>
-        <div class="pip-card" style="background:rgba(100,119,240,0.06);border-color:rgba(100,119,240,0.2)">
-          <div class="pip-num" id="pip-score" style="color:var(--accent2)">14.400</div>
-          <div class="pip-label">Pipeline score (÷ días)</div>
-        </div>
-      </div>
-
-      <p class="narrative" id="pip-narrative">Con 12 reuniones y 60% de acceptance, generás 7 oportunidades reales. A $30.000 ACV eso es $216.000 de pipeline este mes.</p>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Cómo mejorar cada número</div>
-      <div class="seg-grid">
-        <div class="seg-card">
-          <div class="seg-title" style="color:var(--accent)">↑ ACV</div>
-          <div class="seg-note" style="font-size:12px;margin-top:6px">Priorizar fintech y enterprise. Llegar con señal de fondeo cuando hay presupuesto disponible.</div>
-        </div>
-        <div class="seg-card">
-          <div class="seg-title" style="color:var(--accent)">↑ Acceptance</div>
-          <div class="seg-note" style="font-size:12px;margin-top:6px">Calificar pain + budget + timing antes de agendar. No agendar para cumplir el número.</div>
-        </div>
-        <div class="seg-card">
-          <div class="seg-title" style="color:var(--accent)">↓ Velocity</div>
-          <div class="seg-note" style="font-size:12px;margin-top:6px">Trabajar cuentas con señal activa. Menos educación necesaria = ciclo más corto.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer">
-    <span>SDR Metrics · GlobalTask · 2026</span>
-    <span>Pipeline Engine, not an activity factory</span>
-  </div>
-
+<div id="mountains">
+  <svg viewBox="0 0 1440 140" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="0,140 200,20 400,140" fill="#6aab4a" opacity=".7"/>
+    <polygon points="150,140 380,10 600,140" fill="#5a9e3a" opacity=".9"/>
+    <polygon points="400,140 620,40 840,140" fill="#6aab4a" opacity=".7"/>
+    <polygon points="600,140 850,5  1060,140" fill="#5a9e3a"/>
+    <polygon points="900,140 1100,30 1300,140" fill="#6aab4a" opacity=".8"/>
+    <polygon points="1100,140 1300,20 1440,140" fill="#5a9e3a"/>
+  </svg>
 </div>
 
-<script>
-function fmt(n){ return '$' + Math.round(n).toLocaleString('es-AR'); }
+<div id="ground">
+  <div class="flower" style="left:8%">🌻</div>
+  <div class="flower" style="left:18%;animation-delay:.4s">🌸</div>
+  <div class="flower" style="left:32%;animation-delay:.8s">🌼</div>
+  <div class="flower" style="left:48%;animation-delay:.2s">🌻</div>
+  <div class="flower" style="left:62%;animation-delay:1s">🌷</div>
+  <div class="flower" style="left:75%;animation-delay:.6s">🌸</div>
+  <div class="flower" style="left:88%;animation-delay:.3s">🌼</div>
+</div>
 
-function calcACV(){
-  const m = +document.getElementById('acv-m').value || 0;
-  const mo = +document.getElementById('acv-mo').value || 12;
-  document.getElementById('acv-num').textContent = fmt(m * 12);
-  document.getElementById('acv-tcv').textContent = 'TCV total: ' + fmt(m * mo);
+<div id="track"></div>
+
+<div id="station">
+  <div class="station-sign" id="station-sign">Retiro</div>
+  <div class="station-building">
+    <div class="station-roof"></div>
+    <div class="station-window"></div>
+    <div class="station-window"></div>
+    <div class="station-door"></div>
+  </div>
+  <div class="station-platform"></div>
+</div>
+
+<!-- TRAIN -->
+<div id="train">
+  <div class="loco">
+    <div class="chimney"></div>
+    <div class="loco-roof"></div>
+    <div class="loco-body">
+      <div class="loco-stripe"></div>
+      <div class="loco-window"></div>
+      <div class="loco-light"></div>
+    </div>
+    <div class="loco-front"></div>
+    <div class="wheel w1"></div>
+    <div class="wheel w2"></div>
+    <div class="wheel w3"></div>
+  </div>
+  <div class="wagon">
+    <div class="wagon-roof"></div>
+    <div class="wagon-body">
+      <div class="wagon-stripe"></div>
+      <div class="wagon-window ww1"></div>
+      <div class="wagon-window ww2"></div>
+    </div>
+    <div class="wheel ww wl"></div>
+    <div class="wheel ww wr"></div>
+  </div>
+  <div class="wagon">
+    <div class="wagon-roof"></div>
+    <div class="wagon-body">
+      <div class="wagon-stripe"></div>
+      <div class="wagon-window ww1"></div>
+      <div class="wagon-window ww2"></div>
+    </div>
+    <div class="wheel ww wl"></div>
+    <div class="wheel ww wr"></div>
+  </div>
+</div>
+
+<!-- UI -->
+<div id="ui">
+  <div id="title-box">
+    <h1>🚂 El Tren de Joan</h1>
+    <p>Línea Mitre · Buenos Aires</p>
+  </div>
+</div>
+
+<!-- POPUP -->
+<div id="popup">
+  <div id="popup-emoji">🚉</div>
+  <div id="popup-station">Retiro</div>
+  <div id="popup-fact">¡Llegamos a la estación!</div>
+  <button id="popup-btn" onclick="nextStation()">¡Siguiente parada! 🚂</button>
+</div>
+
+<!-- FINAL -->
+<div id="final">
+  <div style="font-size:72px;margin-bottom:16px">🎉🚂🎉</div>
+  <h2>¡Bravo, Joan!</h2>
+  <p>¡Recorriste todas las estaciones<br>del Tren Mitre!</p>
+  <button id="restart-btn" onclick="restart()">¡Viajar de nuevo! 🚂</button>
+</div>
+
+<!-- DOTS -->
+<div id="dots"></div>
+
+<script>
+const stations = [
+  { name: "Retiro",       emoji: "🏙️", fact: "¡La estación más grande de Buenos Aires!", color: "#1a5fbe" },
+  { name: "Palermo",      emoji: "🌳", fact: "¡Tiene el parque más lindo de la ciudad!",  color: "#2e7d32" },
+  { name: "Belgrano",     emoji: "🏘️", fact: "¡Hay una iglesia muy muy antigua aquí!",   color: "#6a1a9a" },
+  { name: "Núñez",        emoji: "⚽", fact: "¡Cerca del estadio del River Plate!",       color: "#c62828" },
+  { name: "Olivos",       emoji: "🌿", fact: "¡Tiene un río muy bonito para ver!",        color: "#1b5e20" },
+  { name: "San Isidro",   emoji: "⛪", fact: "¡Hay una catedral muy grande aquí!",        color: "#4527a0" },
+  { name: "Tigre",        emoji: "🛶", fact: "¡El final del viaje — hay ríos y botes!",   color: "#e65100" },
+];
+
+let current = 0;
+let moving = false;
+const train = document.getElementById('train');
+const popup = document.getElementById('popup');
+const stationSign = document.getElementById('station-sign');
+let smokeInterval = null;
+
+// Build track sleepers
+const track = document.getElementById('track');
+const railTop = document.createElement('div'); railTop.className='rail top'; track.appendChild(railTop);
+const railBot = document.createElement('div'); railBot.className='rail bot'; track.appendChild(railBot);
+for(let i=0; i<Math.ceil(window.innerWidth/32)+2; i++){
+  const s = document.createElement('div');
+  s.className = 'sleeper';
+  s.style.left = (i*32)+'px';
+  track.appendChild(s);
 }
 
-function calcAcc(){
-  const m = +document.getElementById('acc-m').value || 1;
-  const a = +document.getElementById('acc-a').value || 0;
-  const r = Math.min(100, Math.round(a / m * 100));
-  document.getElementById('acc-num').textContent = r + '%';
-  const res = document.getElementById('acc-result');
-  const lbl = document.getElementById('acc-label');
-  const bench = document.getElementById('acc-bench');
-  res.className = 'result';
-  bench.className = 'bench';
-  if(r >= 60){
-    res.classList.add('good'); lbl.textContent = 'Calificación sólida'; bench.classList.add('good'); bench.textContent = 'benchmark: 50–65%';
-  } else if(r >= 30){
-    res.classList.add('warn'); lbl.textContent = 'Hay que mejorar la calificación'; bench.classList.add('warn'); bench.textContent = 'por debajo del benchmark';
-  } else {
-    res.classList.add('bad'); lbl.textContent = 'Problema de targeting o calificación'; bench.classList.add('bad'); bench.textContent = 'muy por debajo del benchmark';
+// Build dots
+const dotsEl = document.getElementById('dots');
+stations.forEach((_,i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' current':'');
+  d.id = 'dot-'+i;
+  dotsEl.appendChild(d);
+});
+
+// Train start position
+const trainW = 300;
+train.style.left = (window.innerWidth/2 - trainW/2 - 80) + 'px';
+
+function updateDots(){
+  stations.forEach((_,i)=>{
+    const d = document.getElementById('dot-'+i);
+    d.className = 'dot' + (i < current ? ' done' : i===current ? ' current' : '');
+  });
+}
+
+function showPopup(){
+  const s = stations[current];
+  document.getElementById('popup-emoji').textContent = s.emoji;
+  document.getElementById('popup-station').textContent = s.name;
+  document.getElementById('popup-fact').textContent = s.fact;
+  document.getElementById('popup-btn').textContent =
+    current < stations.length-1 ? '¡Siguiente parada! 🚂' : '¡Ver el final! 🎉';
+  stationSign.textContent = s.name;
+  popup.classList.add('show');
+  stopSmoke();
+  stopWheels();
+}
+
+function nextStation(){
+  popup.classList.remove('show');
+  if(current >= stations.length-1){
+    setTimeout(showFinal, 400);
+    return;
+  }
+  current++;
+  updateDots();
+  setTimeout(depart, 400);
+}
+
+function depart(){
+  if(moving) return;
+  moving = true;
+  startWheels();
+  startSmoke();
+
+  // Move train off screen right → then reposition left → arrive center
+  const screenW = window.innerWidth;
+  train.style.transition = 'left 1.4s cubic-bezier(.4,0,.6,1)';
+  train.style.left = screenW + 60 + 'px';
+
+  setTimeout(()=>{
+    // Instantly reposition off left
+    train.style.transition = 'none';
+    train.style.left = (-trainW - 80) + 'px';
+    stationSign.textContent = stations[current].name;
+
+    setTimeout(()=>{
+      // Arrive at center
+      train.style.transition = 'left 1.8s cubic-bezier(.2,0,.2,1)';
+      train.style.left = (screenW/2 - trainW/2 - 80) + 'px';
+
+      setTimeout(()=>{
+        moving = false;
+        showPopup();
+      }, 1900);
+    }, 80);
+  }, 1450);
+}
+
+function startWheels(){
+  document.querySelectorAll('.wheel').forEach(w => w.style.animationPlayState='running');
+}
+function stopWheels(){
+  document.querySelectorAll('.wheel').forEach(w => w.style.animationPlayState='paused');
+}
+
+function startSmoke(){
+  smokeInterval = setInterval(()=>{
+    const trainRect = train.getBoundingClientRect();
+    const x = trainRect.left + 28;
+    const y = trainRect.top + 2;
+    const s = document.createElement('div');
+    s.className = 'smoke';
+    const size = 16 + Math.random()*14;
+    s.style.cssText = `left:${x + (Math.random()-0.5)*10}px;top:${y}px;width:${size}px;height:${size}px;`;
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 2100);
+  }, 220);
+}
+function stopSmoke(){ clearInterval(smokeInterval); }
+
+function showFinal(){
+  launchConfetti();
+  document.getElementById('final').classList.add('show');
+}
+
+function launchConfetti(){
+  const colors = ['#1a5fbe','#FFD700','#e63946','#5a9e3a','#ff6b35','#a855f7','#06b6d4'];
+  for(let i=0;i<60;i++){
+    setTimeout(()=>{
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = Math.random()*100+'vw';
+      el.style.top = '-20px';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      el.style.animationDelay = Math.random()*1+'s';
+      el.style.animationDuration = (2+Math.random()*2)+'s';
+      if(Math.random()>.5) el.style.borderRadius='50%';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(), 4000);
+    }, i*40);
   }
 }
 
-function calcVel(){
-  const s = +document.getElementById('vel-s').value || 1;
-  const e = +document.getElementById('vel-e').value || 1;
-  const d = Math.max(0, e - s);
-  document.getElementById('vel-num').textContent = d + ' días';
-  const res = document.getElementById('vel-result');
-  const lbl = document.getElementById('vel-label');
-  res.className = 'result';
-  if(d <= 10){ res.classList.add('good'); lbl.textContent = 'Velocity excelente — señal muy caliente'; }
-  else if(d <= 25){ res.classList.add('warn'); lbl.textContent = 'Velocity dentro del benchmark'; }
-  else { res.classList.add('bad'); lbl.textContent = 'Velocity lenta — revisar señales y calificación'; }
-
-  // Timeline
-  const steps = ['1er contacto','Respuesta','Calificación','Reunión','Oportunidad'];
-  const pcts = [0, 0.2, 0.45, 0.7, 1];
-  const total = Math.max(d, 1);
-  document.getElementById('tl-nodes').innerHTML = steps.map((s2,i) =>
-    `<div class="tl-node">
-      <div class="tl-dot"></div>
-      <div class="tl-day">Día ${Math.round(pcts[i]*total)}</div>
-      <div class="tl-lbl">${s2}</div>
-    </div>`
-  ).join('');
+function restart(){
+  current = 0;
+  document.getElementById('final').classList.remove('show');
+  stationSign.textContent = stations[0].name;
+  train.style.transition = 'none';
+  train.style.left = (window.innerWidth/2 - trainW/2 - 80) + 'px';
+  updateDots();
+  setTimeout(()=>showPopup(), 300);
 }
 
-function calcPip(){
-  const m = +document.getElementById('pip-m').value || 0;
-  const a = +document.getElementById('pip-a').value || 0;
-  const acv = +document.getElementById('pip-acv').value || 0;
-  const v = +document.getElementById('pip-v').value || 1;
-  const opps = Math.round(m * a / 100);
-  const total = opps * acv;
-  const score = Math.round(total / v);
-  document.getElementById('pip-opps').textContent = opps;
-  document.getElementById('pip-total').textContent = fmt(total);
-  document.getElementById('pip-score').textContent = Math.round(score).toLocaleString('es-AR');
-  document.getElementById('pip-narrative').textContent =
-    `Con ${m} reuniones y ${a}% de acceptance, generás ${opps} oportunidades reales. A ${fmt(acv)} ACV promedio eso es ${fmt(total)} de pipeline este mes.`;
-}
-
-function showTab(id){
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('tab-'+id).classList.add('active');
-}
-
-// Init
-calcACV(); calcAcc(); calcVel(); calcPip();
+// Kick off — show first station popup after short delay
+setTimeout(()=>showPopup(), 900);
 </script>
 </body>
 </html>
