@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDR Metrics — GlobalTask</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0c0c0f;
+    --surface: #141418;
+    --surface2: #1c1c22;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0efe8;
+    --muted: #7a7a85;
+    --accent: #c8f064;
+    --accent2: #6477f0;
+    --danger: #f06464;
+    --warn: #f0b864;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Instrument Serif', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid rgba(200,240,100,0.25);
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+    letter-spacing: .06em;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(36px, 6vw, 58px);
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    letter-spacing: -.02em;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 520px;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    animation: fadeUp .6s .1s ease both;
+  }
+
+  .tab {
+    padding: 8px 18px;
+    border-radius: 100px;
+    border: 1px solid var(--border2);
+    font-size: 13px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--sans);
+    transition: all .2s;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+  .tab.active { background: var(--accent); color: #0c0c0f; border-color: var(--accent); font-weight: 500; }
+
+  /* Panel */
+  .panel { display: none; animation: fadeUp .35s ease both; }
+  .panel.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 6px;
+    letter-spacing: -.01em;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.65;
+    margin-bottom: 24px;
+  }
+
+  /* Formula */
+  .formula {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 24px;
+    letter-spacing: .02em;
+  }
+
+  /* Inputs */
+  .input-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .input-group:last-of-type { border-bottom: none; }
+
+  .input-label {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .calc-input {
+    width: 100px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .calc-input:focus { border-color: var(--accent); }
+
+  /* Result */
+  .result {
+    margin-top: 24px;
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: background .3s;
+  }
+
+  .result-num {
+    font-family: var(--mono);
+    font-size: 36px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .result-label {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .result-sub {
+    font-size: 11px;
+    margin-top: 4px;
+    opacity: .7;
+  }
+
+  .result.good { background: rgba(200,240,100,0.08); border: 1px solid rgba(200,240,100,0.2); }
+  .result.good .result-num { color: var(--accent); }
+  .result.warn { background: rgba(240,184,100,0.08); border: 1px solid rgba(240,184,100,0.2); }
+  .result.warn .result-num { color: var(--warn); }
+  .result.bad { background: rgba(240,100,100,0.08); border: 1px solid rgba(240,100,100,0.2); }
+  .result.bad .result-num { color: var(--danger); }
+  .result.info { background: rgba(100,119,240,0.08); border: 1px solid rgba(100,119,240,0.2); }
+  .result.info .result-num { color: var(--accent2); }
+
+  /* Bench pill */
+  .bench {
+    display: inline-block;
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 3px 10px;
+    border-radius: 100px;
+    margin-top: 8px;
+  }
+
+  .bench.good { background: rgba(200,240,100,0.15); color: var(--accent); }
+  .bench.warn { background: rgba(240,184,100,0.15); color: var(--warn); }
+  .bench.bad { background: rgba(240,100,100,0.15); color: var(--danger); }
+
+  /* Segments */
+  .seg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .seg-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  .seg-title { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+  .seg-val { font-size: 22px; font-weight: 500; font-family: var(--mono); color: var(--accent); }
+  .seg-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Pipeline grid */
+  .pip-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .pip-card {
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .pip-num { font-family: var(--mono); font-size: 24px; font-weight: 500; }
+  .pip-label { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    margin: 20px 0 8px;
+    padding-top: 10px;
+  }
+
+  .tl-track {
+    position: absolute;
+    top: 19px;
+    left: 10px;
+    right: 10px;
+    height: 1px;
+    background: var(--border2);
+  }
+
+  .tl-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width .4s;
+  }
+
+  .tl-nodes {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .tl-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .tl-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    z-index: 1;
+  }
+
+  .tl-day { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+  .tl-lbl { font-size: 10px; color: var(--muted); text-align: center; max-width: 64px; line-height: 1.3; }
+
+  /* Tip */
+  .tip {
+    background: rgba(200,240,100,0.05);
+    border: 1px solid rgba(200,240,100,0.12);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: rgba(200,240,100,0.7);
+    line-height: 1.6;
+    margin-top: 16px;
+  }
+
+  /* Section label */
+  .section-lbl {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin: 20px 0 10px;
+  }
+
+  /* Narrative */
+  .narrative {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 12px;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    gap: 8px;
+  }
+
+  @media (max-width: 600px) {
+    .pip-grid { grid-template-columns: 1fr; }
+    .input-group { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .calc-input { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="tag">SDR Metrics · GlobalTask</div>
+    <h1>Pipeline <em>inteligente</em>,<br>no actividad</h1>
+    <p class="subtitle">Calculá tus métricas reales de SDR: ACV, Opportunity Acceptance y Velocity. El modelo que el board quiere ver.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('acv')">ACV</button>
+    <button class="tab" onclick="showTab('acceptance')">Opportunity Acceptance</button>
+    <button class="tab" onclick="showTab('velocity')">Velocity</button>
+    <button class="tab" onclick="showTab('pipeline')">Pipeline total</button>
+  </div>
+
+  <!-- ACV -->
+  <div class="panel active" id="tab-acv">
+    <div class="card">
+      <div class="card-title">Annual Contract Value</div>
+      <div class="card-desc">El valor anual de un contrato. Si alguien paga $2.500/mes, su ACV es $30.000. Es la métrica que transforma reuniones en revenue para el board.</div>
+      <div class="formula">ACV = precio mensual × 12 &nbsp;|&nbsp; TCV = precio mensual × meses</div>
+      <div class="input-group">
+        <span class="input-label">Precio mensual del deal (USD)</span>
+        <input class="calc-input" id="acv-m" type="number" value="2500" oninput="calcACV()">
+      </div>
+      <div class="input-group">
+        <span class="input-label">Duración del contrato (meses)</span>
+        <input class="calc-input" id="acv-mo" type="number" value="12" oninput="calcACV()">
+      </div>
+      <div class="result good" id="acv-result">
+        <div class="result-num" id="acv-num">$30.000</div>
+        <div class="result-label">
+          ACV de este deal
+          <div class="result-sub" id="acv-tcv">TCV total: $30.000</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ACV por industria — GlobalTask</div>
+      <div class="card-desc">Cuánto vale en promedio cada tipo de cuenta. Usalo para priorizar dónde invertís tu tiempo esta semana.</div>
+      <div class="seg-grid">
+        <div class="seg-card"><div class="seg-title">Fintech / FSI</div><div class="seg-val">$48K</div><div class="seg-note">ACV promedio</div></div>
+        <div class="seg-card"><div class="seg-title">SaaS B2B</div><div class="seg-val">$28K</div><div class="seg-note">ACV promedio</div></div>
+        <div class="seg-card"><div class="seg-title">Retail / eComm</div><div class="seg-val">$18K</div><div class="seg-note">ACV promedio</div></div>
+        <div class="seg-card"><div class="seg-title">Enterprise</div><div class="seg-val">$90K+</div><div class="seg-note">ACV promedio</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCEPTANCE -->
+  <div class="panel" id="tab-acceptance">
+    <div class="card">
+      <div class="card-title">Opportunity Acceptance Rate</div>
+      <div class="card-desc">De las reuniones que agendás, qué porcentaje el AE acepta como oportunidad real. Una reunión sin pain real no cuenta. Este número muestra la calidad de tu trabajo, no el volumen.</div>
+      <div class="formula">Acceptance = oportunidades aceptadas ÷ reuniones agendadas × 100</div>
+      <div class="input-group">
+        <span class="input-label">Reuniones agendadas este mes</span>
+        <input class="calc-input" id="acc-m" type="number" value="10" oninput="calcAcc()">
+      </div>
+      <div class="input-group">
+        <span class="input-label">Oportunidades aceptadas por el AE</span>
+        <input class="calc-input" id="acc-a" type="number" value="6" oninput="calcAcc()">
+      </div>
+      <div class="result" id="acc-result">
+        <div class="result-num" id="acc-num">60%</div>
+        <div class="result-label">
+          <span id="acc-label">Buen nivel de calificación</span>
+          <div><span class="bench good" id="acc-bench">benchmark: 50–65%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Qué significa cada rango</div>
+      <div class="seg-grid">
+        <div class="seg-card" style="border-color: rgba(200,240,100,0.2)">
+          <div class="seg-title" style="color: var(--accent)">+60%</div>
+          <div class="seg-val" style="font-size:15px;color:var(--text);font-family:var(--sans)">Calificación sólida</div>
+          <div class="seg-note">Las reuniones que agendás tienen pain real y budget</div>
+        </div>
+        <div class="seg-card" style="border-color: rgba(240,184,100,0.2)">
+          <div class="seg-title" style="color: var(--warn)">30–60%</div>
+          <div class="seg-val" style="font-size:15px;color:var(--text);font-family:var(--sans)">Inconsistente</div>
+          <div class="seg-note">Calificás bien a veces — revisar preguntas antes de agendar</div>
+        </div>
+        <div class="seg-card" style="border-color: rgba(240,100,100,0.2)">
+          <div class="seg-title" style="color: var(--danger)">−30%</div>
+          <div class="seg-val" style="font-size:15px;color:var(--text);font-family:var(--sans)">Problema de targeting</div>
+          <div class="seg-note">Estás llegando a las cuentas o cargos equivocados</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VELOCITY -->
+  <div class="panel" id="tab-velocity">
+    <div class="card">
+      <div class="card-title">Pipeline Velocity</div>
+      <div class="card-desc">Días desde el primer contacto hasta que el AE acepta la oportunidad. Menos días = más ciclos por trimestre. Las señales de compra comprimen este número drásticamente.</div>
+      <div class="formula">Velocity = fecha oportunidad aceptada − fecha primer contacto</div>
+      <div class="input-group">
+        <span class="input-label">Primer contacto (día del mes)</span>
+        <input class="calc-input" id="vel-s" type="number" value="1" min="1" max="30" oninput="calcVel()">
+      </div>
+      <div class="input-group">
+        <span class="input-label">Oportunidad aceptada (día del mes)</span>
+        <input class="calc-input" id="vel-e" type="number" value="9" min="1" max="30" oninput="calcVel()">
+      </div>
+
+      <div class="timeline">
+        <div class="tl-track"><div class="tl-fill" id="tl-fill" style="width:100%"></div></div>
+        <div class="tl-nodes" id="tl-nodes"></div>
+      </div>
+
+      <div class="result good" id="vel-result">
+        <div class="result-num" id="vel-num">8 días</div>
+        <div class="result-label">
+          <span id="vel-label">Velocity excelente</span>
+          <div class="result-sub">Benchmark B2B SaaS LATAM: 15–30 días</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Por qué importa comprimirla</div>
+      <div class="seg-grid">
+        <div class="seg-card">
+          <div class="seg-title">Velocity 30 días</div>
+          <div class="seg-val">3–4</div>
+          <div class="seg-note">ciclos posibles por trimestre</div>
+        </div>
+        <div class="seg-card">
+          <div class="seg-title">Velocity 10 días</div>
+          <div class="seg-val">9</div>
+          <div class="seg-note">ciclos posibles por trimestre</div>
+        </div>
+        <div class="seg-card">
+          <div class="seg-title">Diferencia</div>
+          <div class="seg-val" style="color:var(--accent)">2–3×</div>
+          <div class="seg-note">más pipeline, mismo esfuerzo</div>
+        </div>
+      </div>
+      <div class="tip">Las señales de compra (fondeo, hiring, nuevo producto) comprimen la velocity porque la cuenta ya está en modo compra activo. No necesitás educarla.</div>
+    </div>
+  </div>
+
+  <!-- PIPELINE TOTAL -->
+  <div class="panel" id="tab-pipeline">
+    <div class="card">
+      <div class="card-title">Pipeline generado este mes</div>
+      <div class="card-desc">La fórmula que combina las tres métricas. Es lo que presentás al board en lugar de "agendé X reuniones".</div>
+      <div class="formula">Pipeline = reuniones × acceptance% × ACV &nbsp;÷&nbsp; velocity</div>
+
+      <div class="input-group">
+        <span class="input-label">Reuniones agendadas</span>
+        <input class="calc-input" id="pip-m" type="number" value="12" oninput="calcPip()">
+      </div>
+      <div class="input-group">
+        <span class="input-label">Opportunity acceptance (%)</span>
+        <input class="calc-input" id="pip-a" type="number" value="60" oninput="calcPip()">
+      </div>
+      <div class="input-group">
+        <span class="input-label">ACV promedio (USD)</span>
+        <input class="calc-input" id="pip-acv" type="number" value="30000" oninput="calcPip()">
+      </div>
+      <div class="input-group">
+        <span class="input-label">Velocity promedio (días)</span>
+        <input class="calc-input" id="pip-v" type="number" value="15" oninput="calcPip()">
+      </div>
+
+      <div class="pip-grid">
+        <div class="pip-card" style="background:var(--surface2);border-color:var(--border)">
+          <div class="pip-num" id="pip-opps" style="color:var(--text)">7</div>
+          <div class="pip-label">Oportunidades aceptadas</div>
+        </div>
+        <div class="pip-card" style="background:rgba(200,240,100,0.06);border-color:rgba(200,240,100,0.2)">
+          <div class="pip-num" id="pip-total" style="color:var(--accent)">$216.000</div>
+          <div class="pip-label">Pipeline generado</div>
+        </div>
+        <div class="pip-card" style="background:rgba(100,119,240,0.06);border-color:rgba(100,119,240,0.2)">
+          <div class="pip-num" id="pip-score" style="color:var(--accent2)">14.400</div>
+          <div class="pip-label">Pipeline score (÷ días)</div>
+        </div>
+      </div>
+
+      <p class="narrative" id="pip-narrative">Con 12 reuniones y 60% de acceptance, generás 7 oportunidades reales. A $30.000 ACV eso es $216.000 de pipeline este mes.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cómo mejorar cada número</div>
+      <div class="seg-grid">
+        <div class="seg-card">
+          <div class="seg-title" style="color:var(--accent)">↑ ACV</div>
+          <div class="seg-note" style="font-size:12px;margin-top:6px">Priorizar fintech y enterprise. Llegar con señal de fondeo cuando hay presupuesto disponible.</div>
+        </div>
+        <div class="seg-card">
+          <div class="seg-title" style="color:var(--accent)">↑ Acceptance</div>
+          <div class="seg-note" style="font-size:12px;margin-top:6px">Calificar pain + budget + timing antes de agendar. No agendar para cumplir el número.</div>
+        </div>
+        <div class="seg-card">
+          <div class="seg-title" style="color:var(--accent)">↓ Velocity</div>
+          <div class="seg-note" style="font-size:12px;margin-top:6px">Trabajar cuentas con señal activa. Menos educación necesaria = ciclo más corto.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>SDR Metrics · GlobalTask · 2026</span>
+    <span>Pipeline Engine, not an activity factory</span>
+  </div>
+
+</div>
+
+<script>
+function fmt(n){ return '$' + Math.round(n).toLocaleString('es-AR'); }
+
+function calcACV(){
+  const m = +document.getElementById('acv-m').value || 0;
+  const mo = +document.getElementById('acv-mo').value || 12;
+  document.getElementById('acv-num').textContent = fmt(m * 12);
+  document.getElementById('acv-tcv').textContent = 'TCV total: ' + fmt(m * mo);
+}
+
+function calcAcc(){
+  const m = +document.getElementById('acc-m').value || 1;
+  const a = +document.getElementById('acc-a').value || 0;
+  const r = Math.min(100, Math.round(a / m * 100));
+  document.getElementById('acc-num').textContent = r + '%';
+  const res = document.getElementById('acc-result');
+  const lbl = document.getElementById('acc-label');
+  const bench = document.getElementById('acc-bench');
+  res.className = 'result';
+  bench.className = 'bench';
+  if(r >= 60){
+    res.classList.add('good'); lbl.textContent = 'Calificación sólida'; bench.classList.add('good'); bench.textContent = 'benchmark: 50–65%';
+  } else if(r >= 30){
+    res.classList.add('warn'); lbl.textContent = 'Hay que mejorar la calificación'; bench.classList.add('warn'); bench.textContent = 'por debajo del benchmark';
+  } else {
+    res.classList.add('bad'); lbl.textContent = 'Problema de targeting o calificación'; bench.classList.add('bad'); bench.textContent = 'muy por debajo del benchmark';
+  }
+}
+
+function calcVel(){
+  const s = +document.getElementById('vel-s').value || 1;
+  const e = +document.getElementById('vel-e').value || 1;
+  const d = Math.max(0, e - s);
+  document.getElementById('vel-num').textContent = d + ' días';
+  const res = document.getElementById('vel-result');
+  const lbl = document.getElementById('vel-label');
+  res.className = 'result';
+  if(d <= 10){ res.classList.add('good'); lbl.textContent = 'Velocity excelente — señal muy caliente'; }
+  else if(d <= 25){ res.classList.add('warn'); lbl.textContent = 'Velocity dentro del benchmark'; }
+  else { res.classList.add('bad'); lbl.textContent = 'Velocity lenta — revisar señales y calificación'; }
+
+  // Timeline
+  const steps = ['1er contacto','Respuesta','Calificación','Reunión','Oportunidad'];
+  const pcts = [0, 0.2, 0.45, 0.7, 1];
+  const total = Math.max(d, 1);
+  document.getElementById('tl-nodes').innerHTML = steps.map((s2,i) =>
+    `<div class="tl-node">
+      <div class="tl-dot"></div>
+      <div class="tl-day">Día ${Math.round(pcts[i]*total)}</div>
+      <div class="tl-lbl">${s2}</div>
+    </div>`
+  ).join('');
+}
+
+function calcPip(){
+  const m = +document.getElementById('pip-m').value || 0;
+  const a = +document.getElementById('pip-a').value || 0;
+  const acv = +document.getElementById('pip-acv').value || 0;
+  const v = +document.getElementById('pip-v').value || 1;
+  const opps = Math.round(m * a / 100);
+  const total = opps * acv;
+  const score = Math.round(total / v);
+  document.getElementById('pip-opps').textContent = opps;
+  document.getElementById('pip-total').textContent = fmt(total);
+  document.getElementById('pip-score').textContent = Math.round(score).toLocaleString('es-AR');
+  document.getElementById('pip-narrative').textContent =
+    `Con ${m} reuniones y ${a}% de acceptance, generás ${opps} oportunidades reales. A ${fmt(acv)} ACV promedio eso es ${fmt(total)} de pipeline este mes.`;
+}
+
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// Init
+calcACV(); calcAcc(); calcVel(); calcPip();
+</script>
+</body>
+</html>
